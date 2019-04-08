@@ -20,7 +20,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.Continuation;
-import com.google.android.gms.tasks.OnCompleteListener;
+
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -44,35 +44,41 @@ public class SelfModeActivity extends AppCompatActivity {
     private Button sendSOS, getAppUsage;
     private ProgressBar progressBar;
     private ArrayList<Child> childList;
+    Dialog dialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        try {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_self_mode);
-        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        childList = new ArrayList<>();
-        progressBar = findViewById(R.id.pb);
-        progressBar.setVisibility(View.GONE);
-        getAppUsage = findViewById(R.id.button);
-        sendSOS = findViewById(R.id.button4);
-        sendSOS.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                progressBar.setVisibility(View.VISIBLE);
-                sendSOS();
-            }
-        });
 
-        getAppUsage.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                progressBar.setVisibility(View.VISIBLE);
-                fetchAppUsageFromChild(FirebaseAuth.getInstance().getUid());
-            }
-        });
+            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            childList = new ArrayList<>();
+            dialog = new Dialog(this);
+            progressBar = findViewById(R.id.pb);
+            progressBar.setVisibility(View.GONE);
+            getAppUsage = findViewById(R.id.button);
+            sendSOS = findViewById(R.id.button4);
+            sendSOS.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    progressBar.setVisibility(View.VISIBLE);
+                    sendSOS();
+                }
+            });
+
+            getAppUsage.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    progressBar.setVisibility(View.VISIBLE);
+                    fetchAppUsageFromChild(FirebaseAuth.getInstance().getUid());
+                }
+            });
+        }catch(Exception e)
+        {
+            Log.d("mytag",e.getMessage());
+        }
     }
-
-    final Dialog dialog = new Dialog(this);
 
     public void showChildList(ArrayList<Child> childList) {
         try {
