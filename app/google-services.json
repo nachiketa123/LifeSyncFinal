@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "682331476593",
+    "firebase_url": "https://lifesync-3fbba.firebaseio.com",
+    "project_id": "lifesync-3fbba",
+    "storage_bucket": "lifesync-3fbba.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:682331476593:android:c69b70a99a6e53d1",
+        "android_client_info": {
+          "package_name": "com.example.tryapp"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "682331476593-e9mhnf3dab4utc9qbrrqe0bk7in4touh.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.tryapp",
+            "certificate_hash": "96dd7860cbbcf3329ef3e1ed214b5d959d1d5115"
+          }
+        },
+        {
+          "client_id": "682331476593-asmra5raohvhc5ru7q90pv2sqe33eb61.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAhHL4utBcPbHytGZSKUcuXTKbxpbqVAYY"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "682331476593-asmra5raohvhc5ru7q90pv2sqe33eb61.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

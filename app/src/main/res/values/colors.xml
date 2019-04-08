@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="colorPrimary">#D32F2F</color>
+    <color name="colorPrimaryDark">#00574B</color>
+    <color name="colorAccent">#FAFAFA</color>
+    <color name="qr_code_reader_square">#FFFFFFFF</color>
+    <color name="mycolor">#0000CD</color>
+    <color name="btcolor">#78ffffff</color>
+    <color name="coloroverlay">#78ffffff</color>
+</resources>
