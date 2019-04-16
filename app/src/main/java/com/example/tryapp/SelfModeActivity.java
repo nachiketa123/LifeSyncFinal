@@ -21,6 +21,7 @@ import android.widget.Toast;
 
 import com.google.android.gms.tasks.Continuation;
 
+import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.database.DataSnapshot;
@@ -29,7 +30,10 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.functions.FirebaseFunctions;
+import com.google.firebase.functions.FirebaseFunctionsException;
 import com.google.firebase.functions.HttpsCallableResult;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.InstanceIdResult;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
@@ -49,12 +53,11 @@ public class SelfModeActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         try {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_self_mode);
+            super.onCreate(savedInstanceState);
+            setContentView(R.layout.activity_self_mode);
 
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);
             childList = new ArrayList<>();
-            dialog = new Dialog(this);
             progressBar = findViewById(R.id.pb);
             progressBar.setVisibility(View.GONE);
             getAppUsage = findViewById(R.id.button);
@@ -71,18 +74,21 @@ public class SelfModeActivity extends AppCompatActivity {
                 @Override
                 public void onClick(View v) {
                     progressBar.setVisibility(View.VISIBLE);
-                    fetchAppUsageFromChild(FirebaseAuth.getInstance().getUid());
+                    if (dialog == null)
+                        fetchAppUsageFromChild(FirebaseAuth.getInstance().getUid());
+                    else
+                        dialog.show();
                 }
             });
-        }catch(Exception e)
-        {
-            Log.d("mytag",e.getMessage());
+        } catch (Exception e) {
+            Log.d("mytag", e.getMessage());
         }
     }
 
     public void showChildList(ArrayList<Child> childList) {
         try {
             progressBar.setVisibility(View.GONE);
+            dialog = new Dialog(this);
             dialog.setContentView(R.layout.dbox_child_list_layout);
             dialog.setTitle("Children List");
             LinearLayout linearLayout = dialog.findViewById(R.id.linear_layout);
@@ -94,10 +100,10 @@ public class SelfModeActivity extends AppCompatActivity {
                 button.setId(childList.indexOf(child));
                 button.setText(child.getName());
                 button.setGravity(Gravity.CENTER_HORIZONTAL);
-                button.setOnClickListener(new OnClickHandler());
+                button.setOnClickListener(new OnClickHandler(child));
                 linearLayout.addView(button, lp);
             }
-            Button button = new Button(this);
+            //Button button = new Button(this);
             dialog.show();
         } catch (Exception e) {
             Log.e("mytag", e.getMessage());
@@ -156,7 +162,7 @@ public class SelfModeActivity extends AppCompatActivity {
 
                             Log.e("mytag", "getChildAppUsage");
                         } catch (Exception e) {
-                            Log.e("mytag", e.getMessage());
+                            Log.d("mytag", e.getMessage());
                         }
                     }
 
@@ -266,32 +272,86 @@ public class SelfModeActivity extends AppCompatActivity {
 
     class OnClickHandler implements View.OnClickListener {
 
+        Child child;
+
+        OnClickHandler() {
+
+        }
+
+        OnClickHandler(Child child) {
+            this.child = child;
+        }
+
         @Override
         public void onClick(View v) {
-                dialog.dismiss();
-            FirebaseFunctions mfunc = FirebaseFunctions.getInstance();
-
-            try {
-                Map<String, Object> data = new HashMap<>();
-                data.put("text", "Hello from client");
-                data.put("push", true);
-                mfunc.getHttpsCallable("addMessage")
-                        .call(data)
-                        .continueWith(new Continuation<HttpsCallableResult, Object>() {
-                            @Override
-                            public Object then(@NonNull Task<HttpsCallableResult> task) throws Exception {
-                                HashMap<String, Object> ob = null;
-                                try {
-
-                                } catch (Exception e) {
+            dialog.dismiss();
+            if (this.child == null) {
+                Toast.makeText(getApplicationContext(), "No child selected", Toast.LENGTH_SHORT).show();
+                return;
+            }
+//            Log.d("mytag",String.valueOf(v.getId()));
+            DatabaseReference ref = FirebaseDatabase.getInstance().getReference("/USERS/" + child.getUserID());
+            ref.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    User user = dataSnapshot.getValue(User.class);
+                    String token = user.getToken();
+                    requestAppUsageState(token).addOnCompleteListener(new OnCompleteListener() {
+                        @Override
+                        public void onComplete(@NonNull Task task) {
+                            if (!task.isSuccessful()) {
+                                Exception e = task.getException();
+                                if (e instanceof FirebaseFunctionsException) {
                                     Log.e("mytag", e.getMessage());
                                 }
-                                return ob;
                             }
-                        });
-            } catch (Exception e) {
-                Log.e("mytag", e.getMessage());
-            }
+                        }
+                    });
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            });
         }
     }
+
+    Task<Object> requestAppUsageState(String token) {
+        try {
+//            FirebaseInstanceId.getInstance().getInstanceId().addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+//                @Override
+//                public void onComplete(@NonNull Task<InstanceIdResult> task) {
+//                    if(task.isSuccessful())
+//                    {
+//                        String token = task.getResult().getToken();
+//                        Log.d("mytag",token);
+//                    }
+//                }
+//            });
+            FirebaseFunctions mfunc = FirebaseFunctions.getInstance();
+            Map<String, Object> data = new HashMap<>();
+            data.put("token", token);
+            data.put("from_userId", FirebaseAuth.getInstance().getUid());
+            data.put("push", true);
+            return mfunc.getHttpsCallable("requestAppUsageState")
+                    .call(data)
+                    .continueWith(new Continuation<HttpsCallableResult, Object>() {
+                        @Override
+                        public Object then(@NonNull Task<HttpsCallableResult> task) throws Exception {
+                            HashMap<String, Object> ob = null;
+                            try {
+
+                            } catch (Exception e) {
+                                Log.e("mytag", e.getMessage());
+                            }
+                            return ob;
+                        }
+                    });
+        } catch (Exception e) {
+            Log.e("mytag", e.getMessage());
+        }
+        return null;
+    }
 }
+

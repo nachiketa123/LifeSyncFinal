@@ -1,7 +1,12 @@
 package com.example.tryapp;
 
+import android.app.AppOpsManager;
+import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.provider.Settings;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.Menu;
@@ -11,6 +16,9 @@ import android.widget.Button;
 import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
+
+import static android.app.AppOpsManager.MODE_ALLOWED;
+import static android.app.AppOpsManager.OPSTR_GET_USAGE_STATS;
 
 public class HomeActivity extends AppCompatActivity {
     private Button button;
@@ -102,5 +110,43 @@ public class HomeActivity extends AppCompatActivity {
             Log.d("mytag","signout");
         }
         return super.onOptionsItemSelected(item);
+    }
+
+    public boolean checkIfPermissionAlreadyGiven(Context context) {
+        AppOpsManager appOps;
+        int mode = 50;
+        try {
+            appOps = (AppOpsManager) context.getSystemService(Context.APP_OPS_SERVICE);
+            mode = appOps.checkOpNoThrow(OPSTR_GET_USAGE_STATS, android.os.Process.myUid(), context.getPackageName());
+        }catch (Exception e)
+        {
+            Log.e("mytag",e.getMessage());
+        }
+        return mode == MODE_ALLOWED;
+    }
+
+    public void showAlertDialog() {
+        new AlertDialog.Builder(HomeActivity.this)
+                .setTitle("Permission Required")
+                .setMessage("App must use App Usage Stat to work.. click OK and goto LifeSync and enable 'Permit usage access'")
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                        finish();
+                    }
+                }).setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                startActivity(new Intent(Settings.ACTION_USAGE_ACCESS_SETTINGS));
+            }
+        }).create().show();
+    }
+
+    @Override
+    protected void onStart() {
+        super.onStart();
+        if(!checkIfPermissionAlreadyGiven(getApplicationContext()))
+            showAlertDialog();
     }
 }

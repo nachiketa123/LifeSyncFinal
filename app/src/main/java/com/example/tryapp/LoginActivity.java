@@ -1,8 +1,11 @@
 package com.example.tryapp;
 
 import android.app.ProgressDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
@@ -46,11 +49,25 @@ public class LoginActivity extends AppCompatActivity {
         progressDialog.setMessage("Logging in...");
         progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         lgbtn=findViewById(R.id.lgbtn);
+
+        //---------------------------------------------------
+
+        Intent intent = new Intent(this,BackgroundAppLockService.class);
+        startService(intent);
+
+        //---------------------------------------------------
+
+
         lgbtn.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 //progressDialog.show();
-                openHome();
+                if(checkInternetConnection())
+                    openHome();
+                else
+                {
+                    Toast.makeText(getApplicationContext(),"Check Your Internet Connectionn and then try again..",Toast.LENGTH_SHORT).show();
+                }
             }
         });
         textView=findViewById(R.id.txtvw);
@@ -70,6 +87,20 @@ public class LoginActivity extends AppCompatActivity {
             }
         });
         mAuth=FirebaseAuth.getInstance();
+    }
+
+    private boolean checkInternetConnection() {
+        boolean connected ;
+        ConnectivityManager connectivityManager = (ConnectivityManager)getSystemService(Context.CONNECTIVITY_SERVICE);
+        NetworkInfo networkInfo = connectivityManager.getActiveNetworkInfo();
+        if(networkInfo != null) {
+
+            //we are connected to a network
+            connected = true;
+        }
+        else
+            connected = false;
+        return connected;
     }
 
     @Override

@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:padding="20dp">
+    android:layout_height="wrap_content"
+    android:padding="5dip"
+    android:layout_margin="10dip">
 
     <LinearLayout
         android:id="@+id/ll1"
@@ -20,24 +21,24 @@
         <LinearLayout
             android:id="@+id/ll2"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
+            android:layout_height="wrap_content"
             android:orientation="vertical"
             android:padding="5dp"
             android:gravity="center">
 
             <TextView
-                android:id="@+id/app_name"
                 android:layout_weight="1"
+                android:id="@+id/app_name"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:text="@string/_1234"
                 android:layout_margin="2dp"/>
 
             <TextView
-                android:id="@+id/package_name"
                 android:layout_weight="1"
+                android:id="@+id/package_name"
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
+                android:layout_height="wrap_content"
                 android:text="@string/_12341"
                 android:layout_margin="2dp"/>
         </LinearLayout>
