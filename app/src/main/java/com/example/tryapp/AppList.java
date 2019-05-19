@@ -1,10 +1,18 @@
 package com.example.tryapp;
 
+import android.content.SharedPreferences;
 import android.graphics.drawable.Drawable;
 import android.os.Parcel;
 import android.os.Parcelable;
+import android.support.annotation.NonNull;
 import android.util.Log;
 
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.gson.Gson;
 
 import java.util.ArrayList;
@@ -16,6 +24,7 @@ public class AppList implements Parcelable {
     private String name;
     private String packageName;
     private float time;
+    private static final String TAG = "mytag";
 
     public AppList(Drawable icon, String name, String packageName) {
         this.icon = icon;
@@ -108,7 +117,7 @@ public class AppList implements Parcelable {
         return appDetailMap;
     }
 
-    public ArrayList<AppList> mergeAppDetailsToAppList(ArrayList<String> appNames, ArrayList<String> appPackageNames, ArrayList<String> appTimeUsages) {
+    public ArrayList<AppList> convertAppDetailsToAppList(ArrayList<String> appNames, ArrayList<String> appPackageNames, ArrayList<String> appTimeUsages) {
         ArrayList<AppList> appList = new ArrayList<>();
         try {
             for (int i = 0; i < appNames.size(); ++i) {
@@ -116,10 +125,11 @@ public class AppList implements Parcelable {
                 appList.add(app);
             }
         } catch (Exception e) {
-            Log.e("mytag", "in mergeAppDetailsToAppList " + e.getMessage());
+            Log.e("mytag", "in convertAppDetailsToAppList " + e.getMessage());
         }
         return appList;
     }
+
 
 //    public Bitmap convertDrawableToBitmap(Drawable drawable)
 //    {

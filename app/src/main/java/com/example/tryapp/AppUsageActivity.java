@@ -8,6 +8,7 @@ import android.app.usage.UsageStatsManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.ResolveInfo;
 import android.graphics.Bitmap;
@@ -15,23 +16,31 @@ import android.graphics.drawable.AdaptiveIconDrawable;
 import android.graphics.drawable.BitmapDrawable;
 import android.graphics.drawable.Drawable;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 import com.google.firebase.storage.UploadTask;
+import com.google.gson.Gson;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
@@ -42,6 +51,9 @@ import static android.app.AppOpsManager.OPSTR_GET_USAGE_STATS;
 
 public class AppUsageActivity extends AppCompatActivity {
     ArrayList<AppList> appList;
+    private static final String TAG = "mytag";
+    public static ArrayList<String> blockAppList;
+    public static Child child;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -70,7 +82,7 @@ public class AppUsageActivity extends AppCompatActivity {
 
         myListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+            public void onItemClick(AdapterView<?> parent, View view, final int position, long id) {
 
 //                Log.d("mytag",String.valueOf(position));
                 final Dialog dialog = new Dialog(AppUsageActivity.this);
@@ -91,6 +103,27 @@ public class AppUsageActivity extends AppCompatActivity {
                         dialog.dismiss();
                     }
                 });
+                final Button lock = dialog.findViewById(R.id.lock);
+                lock.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        if(lock.getText().equals("LOCK")) {
+                            lock.setText("UNLOCK");
+                            String packageName = appList.get(position).getPackageName();
+                            fetchBlockedAppListFromDBAndAddApp(packageName);
+//                            if(blockAppList != null)
+//                                Log.d(TAG, ""+blockAppList.toString());
+//                            else
+//                                Log.d(TAG, "null");
+                        }
+                        else {
+                            lock.setText("LOCK");
+                            String packageName = appList.get(position).getPackageName();
+                            fetchBlockedAppListFromDBAndRemoveApp(packageName);
+                        }
+                    }
+                });
+
 
             }
         });
@@ -200,7 +233,7 @@ public class AppUsageActivity extends AppCompatActivity {
 
         //setting app usage time duration for the apps in the applist using calendar(since when? since last month or since last year or what?)
         Calendar calendar = Calendar.getInstance();
-        calendar.add(Calendar.WEEK_OF_MONTH, -1);
+        calendar.add(Calendar.HOUR_OF_DAY, -1);
         final long start = calendar.getTimeInMillis();
         long end = System.currentTimeMillis();
         Map<String, UsageStats> stats = usageStatsManager.queryAndAggregateUsageStats(start, end);
@@ -233,4 +266,107 @@ public class AppUsageActivity extends AppCompatActivity {
             }
         }).create().show();
     }
+
+
+    public void fetchBlockedAppListFromDBAndAddApp(final String packageName) {
+        // Log.d(TAG, "fetchBlockedAppListFromDB: called");
+        if(FirebaseAuth.getInstance().getCurrentUser() != null) {
+            String userId = FirebaseAuth.getInstance().getUid();
+            DatabaseReference ref = FirebaseDatabase.getInstance().getReference("/USERS/" + userId);
+            ref.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    User user = dataSnapshot.getValue(User.class);
+                    String type = user.getType();
+                    if (type.equals("PARENT")) {
+//                        String json = sp.getString("active_child","");
+//                        Gson gson = new Gson();
+//                        Child child = gson.fromJson(json,Child.class);
+                        String locatorId = child.getChildID();
+                        Log.d(TAG, "locatorId:"+locatorId);
+                        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("/CHILD/" + locatorId);
+                        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                try {
+                                    Child child = dataSnapshot.getValue(Child.class);
+                                    blockAppList = child.getBlockedAppList();
+                                    if(blockAppList == null)
+                                    {
+                                        blockAppList = new ArrayList<>();
+                                    }
+                                    if(!blockAppList.contains(packageName))
+                                        blockAppList.add(packageName);
+                                    new RealTimeDBHandler(getApplicationContext()).updateToBlockedAppListOfChild(child,blockAppList);
+                                } catch (Exception e) {
+                                    Log.e(TAG, "AppList-fetchAppListFromDB:" + e.getMessage());
+                                }
+
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                            }
+                        });
+                    }
+
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            });
+        }
+    }
+    private void fetchBlockedAppListFromDBAndRemoveApp(final String packageName) {
+        if(FirebaseAuth.getInstance().getCurrentUser() != null) {
+            String userId = FirebaseAuth.getInstance().getUid();
+            DatabaseReference ref = FirebaseDatabase.getInstance().getReference("/USERS/" + userId);
+            ref.addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                    User user = dataSnapshot.getValue(User.class);
+                    String type = user.getType();
+                    if (type.equals("PARENT")) {
+//                        String json = sp.getString("active_child","");
+//                        Gson gson = new Gson();
+//                        Child child = gson.fromJson(json,Child.class);
+                        String locatorId = child.getChildID();
+                        Log.d(TAG, "locatorId:"+locatorId);
+                        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("/CHILD/" + locatorId);
+                        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                                try {
+                                    Child child = dataSnapshot.getValue(Child.class);
+                                    blockAppList = child.getBlockedAppList();
+                                    if(blockAppList !=null )
+                                        if(blockAppList.contains(packageName))
+                                            blockAppList.remove(packageName);
+                                    new RealTimeDBHandler(getApplicationContext()).updateToBlockedAppListOfChild(child,blockAppList);
+                                } catch (Exception e) {
+                                    Log.e(TAG, "AppList-fetchAppListFromDB:" + e.getMessage());
+                                }
+
+                            }
+
+                            @Override
+                            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                            }
+                        });
+                    }
+
+                }
+
+                @Override
+                public void onCancelled(@NonNull DatabaseError databaseError) {
+
+                }
+            });
+        }
+    }
+
 }

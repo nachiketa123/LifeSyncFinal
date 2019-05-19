@@ -6,6 +6,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.provider.Settings;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
@@ -15,12 +16,22 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.InstanceIdResult;
 
 import static android.app.AppOpsManager.MODE_ALLOWED;
 import static android.app.AppOpsManager.OPSTR_GET_USAGE_STATS;
 
 public class HomeActivity extends AppCompatActivity {
+    private static final String TAG = "mytag";
     private Button button;
     private Button button1;
     private String text2Qr;
@@ -36,6 +47,17 @@ public class HomeActivity extends AppCompatActivity {
             Bundle bundle = getIntent().getExtras();
             text2Qr = bundle.getString("text");
             */
+            FirebaseInstanceId.getInstance().getInstanceId().addOnCompleteListener(new OnCompleteListener<InstanceIdResult>() {
+                @Override
+                public void onComplete(@NonNull Task<InstanceIdResult> task) {
+                    if(task.isSuccessful()) {
+                        Log.d(TAG, "device token"+ task.getResult().getToken());
+                    }
+                    else{
+                        Log.d(TAG, "onComplete: unsuccessfull");
+                    }
+                }
+            });
             button = findViewById(R.id.sm);
             signoutbtn=findViewById(R.id.signout);
             signoutbtn.setOnClickListener(new View.OnClickListener() {
@@ -71,6 +93,36 @@ public class HomeActivity extends AppCompatActivity {
         {
             Log.e("mytag",e.getMessage());
         }
+
+
+        //---------------------------------------------------
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("/USERS/" + FirebaseAuth.getInstance().getUid());
+        ref.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(@NonNull DataSnapshot dataSnapshot) {
+                User user = dataSnapshot.getValue(User.class);
+
+                String type = user.getType();
+
+                //as we know sos sender will be CHILD
+                String childId = user.getLocatorId();
+
+                //but in case type is child
+                if (type.equals("CHILD")) {
+
+                    //start the service to fetch and block the apps which are in blocked list
+                    Intent intent = new Intent(getApplicationContext(),BackgroundAppLockService.class);
+                    startService(intent);
+                }
+            }
+
+            @Override
+            public void onCancelled(@NonNull DatabaseError databaseError) {
+
+            }
+        });
+
+        //---------------------------------------------------
     }
 
     public void openSelfMode(){

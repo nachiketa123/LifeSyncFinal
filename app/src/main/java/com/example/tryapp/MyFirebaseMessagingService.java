@@ -1,26 +1,17 @@
 package com.example.tryapp;
 
-import android.app.Dialog;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.ResolveInfo;
 import android.os.Build;
-import android.os.Bundle;
 import android.os.Looper;
-import android.os.Parcelable;
-import android.provider.ContactsContract;
-import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.app.NotificationManagerCompat;
-import android.support.v7.app.AlertDialog;
 import android.util.Log;
 
-import android.view.View;
-import android.view.WindowManager;
 import android.widget.Toast;
 
 import com.google.android.gms.tasks.Continuation;
@@ -39,7 +30,6 @@ import com.google.firebase.messaging.FirebaseMessagingService;
 import com.google.firebase.messaging.RemoteMessage;
 import com.google.gson.Gson;
 
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -48,14 +38,12 @@ import java.util.Map;
 public class MyFirebaseMessagingService extends FirebaseMessagingService {
     @Override
     public void onNewToken(String s) {
-        super.onNewToken(s);
         new RealTimeDBHandler(this).updateTokenToUser("/USERS/", s);
     }
 
     @Override
     public void onSendError(String s, Exception e) {
         Log.d("mytag", "onMessageError " + e.getMessage());
-        super.onSendError(s, e);
     }
 
     @Override
@@ -78,7 +66,7 @@ public class MyFirebaseMessagingService extends FirebaseMessagingService {
                 ArrayList<String> appNames = gson.fromJson(appDetailsMap.get("appNames"), ArrayList.class);
                 ArrayList<String> appPackageNames = gson.fromJson(appDetailsMap.get("appPackageNames"), ArrayList.class);
                 ArrayList<String> appTimeUsages = gson.fromJson(appDetailsMap.get("appTimeUsages"), ArrayList.class);
-                ArrayList<AppList> appList = new AppList().mergeAppDetailsToAppList(appNames, appPackageNames, appTimeUsages);
+                ArrayList<AppList> appList = new AppList().convertAppDetailsToAppList(appNames, appPackageNames, appTimeUsages);
                 Intent intent = new Intent(getApplicationContext(), AppUsageActivity.class);
                 intent.putParcelableArrayListExtra("appList", appList);
                 startActivity(intent);

@@ -5,6 +5,8 @@ import java.util.ArrayList;
 public class Parent {
     private String parentID = null,name,email,mobile,userID;
     private ArrayList<String> childID;
+    private ArrayList<String> blockedAppList;
+
 
     public Parent(String userID, String name, String mobile, String email) {
         this.userID = userID;
@@ -66,5 +68,13 @@ public class Parent {
 
     public void setMobile(String mobile) {
         this.mobile = mobile;
+    }
+
+    public ArrayList<String> getBlockedAppList() {
+        return blockedAppList;
+    }
+
+    public void setBlockedAppList(ArrayList<String> blockedAppList) {
+        this.blockedAppList = blockedAppList;
     }
 }

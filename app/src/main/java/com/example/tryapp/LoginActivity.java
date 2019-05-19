@@ -50,13 +50,6 @@ public class LoginActivity extends AppCompatActivity {
         progressDialog.setProgressStyle(ProgressDialog.STYLE_SPINNER);
         lgbtn=findViewById(R.id.lgbtn);
 
-        //---------------------------------------------------
-
-        Intent intent = new Intent(this,BackgroundAppLockService.class);
-        startService(intent);
-
-        //---------------------------------------------------
-
 
         lgbtn.setOnClickListener(new View.OnClickListener() {
             @Override

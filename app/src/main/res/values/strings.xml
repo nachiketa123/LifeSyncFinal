@@ -95,5 +95,6 @@
     <string name="send">SEND</string>
     <string name="allow_permission_to_use_sysem_app_stats">Allow Permission to use sysem app stats</string>
     <string name="cancel">CANCEL</string>
+    <string name="lock">LOCK</string>
 
 </resources>

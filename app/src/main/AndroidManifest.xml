@@ -30,10 +30,12 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.AppCompat.Light.DarkActionBar">
+        <activity android:name=".BlockScreenActivity"></activity>
+
         <service
             android:name=".BackgroundAppLockService"
             android:enabled="true"
-            android:exported="true"></service>
+            android:exported="true" />
         <service
             android:name=".MyFirebaseMessagingService"
             android:exported="false">

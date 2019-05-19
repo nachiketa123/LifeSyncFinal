@@ -1,7 +1,12 @@
-package com.example.tryapp;;
+package com.example.tryapp;
+
+import java.util.ArrayList;
+
+;
 
 public class Child {
     private String userID,childID=null,parentID,name,mobile,email;
+    private ArrayList<String> blockedAppList;
 
     public Child(String userID, String name, String mobile, String email) {
         this.userID = userID;
@@ -62,5 +67,13 @@ public class Child {
 
     public void setEmail(String email) {
         this.email = email;
+    }
+
+    public ArrayList<String> getBlockedAppList() {
+        return blockedAppList;
+    }
+
+    public void setBlockedAppList(ArrayList<String> blockedAppList) {
+        this.blockedAppList = blockedAppList;
     }
 }

@@ -14,11 +14,13 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 public class RealTimeDBHandler {
 
+    private static final String TAG = "mytag";
     private final Context context;
 
     public RealTimeDBHandler(Context context)
@@ -142,8 +144,10 @@ public class RealTimeDBHandler {
 
     public void updateTokenToUser(String path,String token)
     {
-        DatabaseReference ref = FirebaseDatabase.getInstance().getReference(path +"/" + FirebaseAuth.getInstance().getUid());
-        ref.child("token")
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference(path + FirebaseAuth.getInstance().getUid());
+//        Log.d("mytag", "updateTokenToUser: "+ FirebaseAuth.getInstance().getUid());
+        ref = ref.child("token");
+                ref
                 .setValue(token)
                 .addOnCompleteListener(new OnCompleteListener<Void>() {
                     @Override
@@ -151,5 +155,15 @@ public class RealTimeDBHandler {
                         Log.d("mytag","token updated to user");
                     }
                 });
+    }
+
+    public void updateToBlockedAppListOfChild(Child child, ArrayList<String> blockAppList) {
+        DatabaseReference ref = FirebaseDatabase.getInstance().getReference("/CHILD/"+child.getChildID()+"/blockedAppList/");
+        ref.setValue(blockAppList).addOnCompleteListener(new OnCompleteListener<Void>() {
+            @Override
+            public void onComplete(@NonNull Task<Void> task) {
+                Log.d(TAG, "RealTimeDBHandler-addToBlockedAppListOfChild - onComplete : app added to block list  ");
+            }
+        });
     }
 }

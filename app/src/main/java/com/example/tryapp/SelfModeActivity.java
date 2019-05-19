@@ -2,7 +2,9 @@ package com.example.tryapp;
 
 import android.app.Activity;
 import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v7.app.AppCompatActivity;
@@ -34,6 +36,7 @@ import com.google.firebase.functions.FirebaseFunctionsException;
 import com.google.firebase.functions.HttpsCallableResult;
 import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.firebase.iid.InstanceIdResult;
+import com.google.gson.Gson;
 import com.google.zxing.integration.android.IntentIntegrator;
 import com.google.zxing.integration.android.IntentResult;
 
@@ -289,7 +292,15 @@ public class SelfModeActivity extends AppCompatActivity {
                 Toast.makeText(getApplicationContext(), "No child selected", Toast.LENGTH_SHORT).show();
                 return;
             }
+
+//            SharedPreferences sp = getApplicationContext().getSharedPreferences("MY_SHARED_PREFS", Context.MODE_PRIVATE);
+//            SharedPreferences.Editor editor = sp.edit();
+//            Gson gson = new Gson();
+//            String childString = gson.toJson(child);
+//            editor.putString("active_child",childString);
+//            editor.apply();
 //            Log.d("mytag",String.valueOf(v.getId()));
+            AppUsageActivity.child = child;
             DatabaseReference ref = FirebaseDatabase.getInstance().getReference("/USERS/" + child.getUserID());
             ref.addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
